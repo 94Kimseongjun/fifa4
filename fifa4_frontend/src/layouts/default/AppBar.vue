@@ -1,25 +1,19 @@
 <template>
-  <v-app-bar color="primary" density="compact" flat>
-
+  <v-app-bar color="primary" dense flat>
     <v-btn text @click="handleClickFIFA4">
-      <v-icon icon="mdi-circle-slice-4" />
-      FIFA4
+      <v-icon icon="mdi-circle-slice-4" />FIFA4
     </v-btn>
-
-    <!--  
-    <v-app-bar-title class="title">
-        <v-icon icon="mdi-circle-slice-4" />
-        FIFA4
-    </v-app-bar-title>
--->
     <v-tabs v-model="selectedTab" align-tabs="right">
       <v-tab v-for="(tab, index) in tabs" :key="index" :to="tab.to">
         {{ tab.title }}
       </v-tab>
     </v-tabs>
+    <v-flex xs12 md4>
+      <v-text-field v-model="searchText" label="Search" outlined dense solo-inverted hide-details clearable
+        class="search-field" placeholder="Search" append-icon="mdi-magnify"></v-text-field>
+    </v-flex>
   </v-app-bar>
 </template>
-
 <script setup>
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -46,26 +40,23 @@ const selectedTab = computed(() => {
   return index === -1 ? null : index;
 });
 
-const title = computed(() => tabs[selectedTab.value]?.title ?? 'App');
-
-let drawer = false;
-
-const toggleDrawer = () => {
-  drawer = !drawer;
-};
-
 const handleClickFIFA4 = () => {
   if (router.currentRoute.value.path !== '/') {
     router.push('/');
   }
 };
-
 </script>
-
-
 <style scoped>
-.title {
-  max-width: 100px;
-  /* 적절한 크기로 조정 */
+.v-btn {
+  min-width: 0;
+}
+
+.v-tabs {
+  margin-left: 10px;
+}
+
+.search-field {
+  min-width: 150px;
+  margin-right: 10px;
 }
 </style>
