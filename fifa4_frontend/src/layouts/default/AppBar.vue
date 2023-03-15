@@ -8,14 +8,16 @@
         {{ tab.title }}
       </v-tab>
     </v-tabs>
-    <v-flex xs12 md4>
-      <v-text-field v-model="searchText" label="Search" outlined dense solo-inverted hide-details clearable
-        class="search-field" placeholder="Search" append-icon="mdi-magnify"></v-text-field>
-    </v-flex>
+    <v-row xs12 md4>
+      <v-col>
+        <v-text-field v-model="searchText" label="Search" outlined dense solo-inverted hide-details clearable
+          class="search-field" placeholder="Search" append-icon="mdi-magnify" @click:append="handleSearch"></v-text-field>
+      </v-col>
+    </v-row>
   </v-app-bar>
 </template>
 <script setup>
-import { computed } from 'vue';
+import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const tabs = [
@@ -33,18 +35,31 @@ const tabs = [
   },
 ];
 const router = useRouter();
-
-const selectedTab = computed(() => {
-  const route = useRoute();
-  const index = tabs.findIndex((tab) => tab.to === route.path);
-  return index === -1 ? null : index;
-});
+const searchText = ref('');
+const selectedTab = ref(null);
+const route = useRoute();
+const index = tabs.findIndex((tab) => tab.to === route.path);
+if (index !== -1) {
+  selectedTab.value = index;
+}
 
 const handleClickFIFA4 = () => {
   if (router.currentRoute.value.path !== '/') {
     router.push('/');
   }
 };
+
+const handleSearch = async () => {
+  try {
+    router.push({ 
+      name: 'Home', 
+      query: { nickName: searchText.value },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 </script>
 <style scoped>
 .v-btn {
