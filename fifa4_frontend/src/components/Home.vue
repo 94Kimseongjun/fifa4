@@ -3,32 +3,150 @@
     <div v-if="data">
       <v-card variant="tonal">
         <v-row>
-          <v-col cols="12">
-            <h1>{{ data.nickname }} 레벨: {{ data.level }} {{ this.controllerType }} 유저</h1>
+          <v-col cols="4">
+            <h1>{{ data.nickname }}<br>레벨: {{ data.level }}<br>{{ this.controllerType }} 유저</h1>
           </v-col>
 
           <v-col cols="4" alignSelf="center">
-            <img :src="data.rank.ico_img"> 공식경기 최고 등급 - {{ data.rank.division }}
+            <img :src="data.rank.ico_img"><br> 공식경기 최고 등급 - {{ data.rank.division }} <br>
             달성일 - {{ data.rank.achievementDate }}
           </v-col>
           <v-col cols="4" alignSelf="center">
-            <img :src="data.autoRank.ico_img"> 감독모드 최고 등급 - {{ data.autoRank.division }}
+            <img :src="data.autoRank.ico_img"><br> 감독모드 최고 등급 - {{ data.autoRank.division }}<br>
             달성일 - {{ data.autoRank.achievementDate }}
-          </v-col>
-          <v-col cols="4">
-            <EchartPie :chartData="chartData" width="100%" height="auto"></EchartPie>
           </v-col>
         </v-row>
       </v-card>
 
 
+      <v-container fluid>
+
+        <v-row style="height: 400px;">
+          <v-col cols="3">
+            <div v-if="chartData">
+              <EchartPie :chartData="chartData" width="50%" height="auto"></EchartPie>
+            </div>
+          </v-col>
+          <v-col cols="3">
+            <div v-if="shootChartData">
+              <EchartShootTime :shootChartData="shootChartData" width="50%" height="auto"></EchartShootTime>
+            </div>
+          </v-col>
+
+
+          <v-col cols="2">
+            평점 랭킹
+            <div v-if="momPlayers">
+              <div v-for="momPlayer in displayedMomPlayers" :key="momPlayer.name">
+                <img :src="momPlayer.img" :alt="momPlayer.name" style="width: 50px; height: auto;">
+                <img :src="momPlayer.seasonImg" :alt="momPlayer.season" style="width: 25px; height: auto;">
+                <v-card class="d-flex align-center justify-center">
+                  <v-card-text style="font-size: 10px !important;">{{ momPlayer.name }}<br>최고 평점 {{ momPlayer.cnt }}회<br>
+                    최고 평점 평균 {{ (momPlayer.avgTopRating).toFixed(2) }}<br>
+                    평균 평점 {{ (momPlayer.avgRating).toFixed(2) }}</v-card-text>
+                </v-card>
+              </div>
+              <button @click="showMore">{{ ButtonText }}</button>
+            </div>
+          </v-col>
+
+          <v-col cols="2">
+            득점 랭킹
+            <div v-if="momPlayers">
+              <div v-for="momPlayer in displayedGoalRankPlayers" :key="momPlayer.name">
+                <img :src="momPlayer.img" :alt="momPlayer.name" style="width: 50px; height: auto;">
+                <img :src="momPlayer.seasonImg" :alt="momPlayer.season" style="width: 25px; height: auto;">
+                <v-card class="d-flex align-center justify-center">
+                  <v-card-text style="font-size: 10px !important;">{{ momPlayer.name }}<br>득점 수 {{ momPlayer.cnt }}<br>
+                    경기당 평균 득점 수 {{ (momPlayer.cnt/analysisData.count).toFixed(2) }}<br>
+                    평균 평점 {{ (momPlayer.avgRating).toFixed(2) }}</v-card-text>
+                </v-card>
+              </div>
+              <button @click="showMoreGoalRank">{{ ButtonTextGoalRank }}</button>
+            </div>
+          </v-col>
+          <v-col cols="2">
+            도움 랭킹
+            <div v-if="momPlayers">
+              <div v-for="momPlayer in displayedAssistRankPlayers" :key="momPlayer.name">
+                <img :src="momPlayer.img" :alt="momPlayer.name" style="width: 50px; height: auto;">
+                <img :src="momPlayer.seasonImg" :alt="momPlayer.season" style="width: 25px; height: auto;">
+                <v-card class="d-flex align-center justify-center">
+                  <v-card-text style="font-size: 10px !important;">{{ momPlayer.name }}<br>도움 수 {{ momPlayer.cnt }}<br>
+                    경기당 평균 도움 수 {{ (momPlayer.cnt/analysisData.count).toFixed(2) }}<br>
+                    평균 평점 {{ (momPlayer.avgRating).toFixed(2) }}</v-card-text>
+                </v-card>
+              </div>
+              <button @click="showMoreAssistRank">{{ ButtonTextAssistRank }}</button>
+            </div>
+          </v-col>
+        </v-row>
+
+
+
+        <v-col cols="2">
+          <v-card class="d-flex align-center justify-center" style="height: 50px;">
+            <v-card-text>{{ analysisData.winCount }}승{{ analysisData.drawCount }}무/{{ analysisData.loseCount }}패 승률 {{
+              (analysisData.winCount) / (analysisData.count) * 100 }}%</v-card-text>
+          </v-card>
+
+          <v-card class="d-flex align-center justify-center" style="height: 50px;">
+            <v-card-text>{{ analysisData.totalScore }}득점 {{ analysisData.totalConcede }}실점</v-card-text>
+          </v-card>
+
+          <v-card class="d-flex align-center justify-center" style="height: 50px;">
+            <v-card-text>평균 {{ (analysisData.totalScore / analysisData.count).toFixed(2) }}득점
+              {{ (analysisData.totalConcede / analysisData.count).toFixed(2) }}실점</v-card-text>
+          </v-card>
+
+          <v-card class="d-flex align-center justify-center" style="height: 50px;">
+            <v-card-text>중거리 슛 비율: {{ (analysisData.shootOutPenalty /
+              analysisData.shootTotal * 100).toFixed(2) }}</v-card-text>
+          </v-card>
+
+          <v-card class="d-flex align-center justify-center" style="height: 50px;">
+            <v-card-text>평균 평점 {{ (analysisData.totalSpRating /
+              analysisData.player_count).toFixed(2) }}</v-card-text>
+          </v-card>
+
+          <v-card class="d-flex align-center justify-center" style="height: 60px;">
+            <v-card-text>평균 점유율: {{ (analysisData.avgPossession /
+              analysisData.count).toFixed(2) }}</v-card-text>
+          </v-card>
+
+        </v-col>
+
+
+
+
+
+        <v-col cols="8">
+          <v-row no-gutters>
+            <v-col v-for="(item, index) in analysisData.matchResult" :key="index">
+              <v-card class="d-flex align-center justify-center"
+                :style="{ backgroundColor: item.result === '승' ? 'rgba(0, 0, 255, 0.5)' : item.result === '무' ? 'rgba(128, 128, 128, 0.5)' : 'rgba(255, 0, 0, 0.5)', height: '60px' }">
+                <v-card-text>{{ item.result }}<br>{{ item.score }}:{{ item.concede }}</v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-col>
+
+
+      </v-container>
+
+
+      <v-col cols="4">
+
+
+
+
+
+      </v-col>
     </div>
 
     <div v-if="analysisData">
 
-     
-
-        <!-- 
+      <!-- 
       <p>평균 드리블 거리: {{ analysisData.avgDribbleDistance / analysisData.count }}</p>
       <p>평균 파울 수: {{ analysisData.avgFoulCount / analysisData.count }}</p>
       <p>평균 코너킥 수: {{ analysisData.avgCornerKickCount / analysisData.count }}</p>
@@ -37,21 +155,28 @@
       <p>키보드 경기 수: {{ analysisData.controllerTypes.keyboard }}, 패드 경기 수: {{ analysisData.controllerTypes.pad }}, 기타: {{
         analysisData.controllerTypes.etc }} </p>
 -->
-<v-card variant="outlined">
-  <v-row>
-    <v-col cols="4">
-      <div class="text-center">{{ analysisData.count }} 경기 평균 점유율: {{ (analysisData.avgPossession / analysisData.count).toFixed(2) }}</div>
-    </v-col>
-    <v-col cols="4">
-      <div class="text-center">{{ analysisData.count }} 경기 중거리 슛 시도 비율: {{ (analysisData.shootOutPenalty / analysisData.shootTotal * 100).toFixed(2) }}</div>
-    </v-col>
-    <v-col cols="4">
-      <div class="text-center">{{ analysisData.count }} 경기 평균 평점 {{ (analysisData.totalSpRating / analysisData.player_count).toFixed(2) }}</div>
-    </v-col>
-    <v-spacer></v-spacer>
-  </v-row>
-</v-card>
 
+
+
+      <!-- 
+      <v-card variant="outlined">
+        <v-row>
+          <v-col cols="4">
+            <div class="text-center">{{ analysisData.count }} 경기 평균 점유율: {{ (analysisData.avgPossession /
+              analysisData.count).toFixed(2) }}</div>
+          </v-col>
+          <v-col cols="4">
+            <div class="text-center">{{ analysisData.count }} 경기 중거리 슛 시도 비율: {{ (analysisData.shootOutPenalty /
+              analysisData.shootTotal * 100).toFixed(2) }}</div>
+          </v-col>
+          <v-col cols="4">
+            <div class="text-center">{{ analysisData.count }} 경기 평균 평점 {{ (analysisData.totalSpRating /
+              analysisData.player_count).toFixed(2) }}</div>
+          </v-col>
+          <v-spacer></v-spacer>
+        </v-row>
+      </v-card>
+-->
 
 
       <!-- 
@@ -86,14 +211,8 @@
 
       <!-- 
       <p>shootTypes : {{ analysisData.shootTypes }}</p>
-      <p>슛 시간 : {{ analysisData.goalTimes }}</p>
+      
     -->
-   
-
-      <div v-for="momPlayer in this.momPlayers" :key="momPlayer.name">
-        <img :src="momPlayer.img" :alt="momPlayer.name">
-        <img :src="momPlayer.seasonImg" :alt="momPlayer.season">{{ momPlayer.name }} 팀내 최고 평점 횟수 : {{ momPlayer.cnt }} 팀내 최고 평점 경기 평균 평점 : {{ (momPlayer.avgTopRating).toFixed(2) }} {{ analysisData.count }} 경기 평균 평점 : {{ (momPlayer.avgRating).toFixed(2) }}
-      </div>
 
     </div>
 
@@ -104,10 +223,12 @@
 import axios from 'axios';
 //import { useRouter } from 'vue-router';
 import EchartPie from './EchartPie.vue';
+import EchartShootTime from './EchartShootTime.vue';
 export default {
   name: 'Home',
   components: {
-    EchartPie
+    EchartPie,
+    EchartShootTime
   },
   data() {
     return {
@@ -116,11 +237,71 @@ export default {
       momPlayers: [],
       division_icon: null,
       controllerType: null,
-      chartData: {},
+      chartData: null,
+      momDisplayCount: 3,
+      ButtonText: '더보기',
+      shootChartData: null,
+      goalRankPlayers:[],
+      assistRankPlayers:[],
+      goalRankDisplayCount: 3,
+      ButtonTextGoalRank: '더보기',
+      assistRankDisplayCount: 3,
+      ButtonTextAssistRank: '더보기',
+
     }
   },
 
+  computed: {
+    displayedMomPlayers() {
+      return this.momPlayers.slice(0, this.momDisplayCount);
+    },
+    displayedGoalRankPlayers() {
+      return this.goalRankPlayers.slice(0, this.goalRankDisplayCount);
+    },
+    displayedAssistRankPlayers() {
+      return this.assistRankPlayers.slice(0, this.assistRankDisplayCount);
+    },
+
+
+  },
+
   methods: {
+    showMore() {
+      if (this.ButtonText == '더보기') {
+        this.momDisplayCount += 3;
+        if (this.momDisplayCount >= this.momPlayers.length) {
+          this.momDisplayCount = this.momPlayers.length;
+          this.ButtonText = '접기';
+        }
+      } else if (this.ButtonText == '접기') {
+        this.momDisplayCount = 3;
+        this.ButtonText = '더보기';
+      }
+    },
+    showMoreGoalRank() {
+      if (this.ButtonTextGoalRank == '더보기') {
+        this.goalRankDisplayCount += 3;
+        if (this.goalRankDisplayCount >= this.goalRankPlayers.length) {
+          this.goalRankDisplayCount = this.goalRankPlayers.length;
+          this.ButtonTextGoalRank = '접기';
+        }
+      } else if (this.ButtonTextGoalRank == '접기') {
+        this.goalRankDisplayCount = 3;
+        this.ButtonTextGoalRank = '더보기';
+      }
+    },
+    showMoreAssistRank() {
+      if (this.ButtonTextAssistRank == '더보기') {
+        this.assistRankDisplayCount += 3;
+        if (this.assistRankDisplayCount >= this.assistRankPlayers.length) {
+          this.assistRankDisplayCount = this.assistRankPlayers.length;
+          this.ButtonTextAssistRank = '접기';
+        }
+      } else if (this.ButtonTextAssistRank == '접기') {
+        this.assistRankDisplayCount = 3;
+        this.ButtonTextAssistRank = '더보기';
+      }
+    },
 
     async searchPlayers(spid) {
       try {
@@ -137,6 +318,15 @@ export default {
     async handleSearch() {
 
       this.data = null;
+
+      this.analysisData = null;
+      this.momPlayers = [];
+      this.division_icon = null;
+      this.controllerType = null;
+      this.chartData = {};
+
+
+
       const nickName = this.$route.query.nickName;
 
       if (!nickName) {
@@ -146,8 +336,10 @@ export default {
       try {
         const response = await axios.get(`http://127.0.0.1:8000/searchNickName?nickName=${this.$route.query.nickName}`);
         this.data = response.data
-        this.data.rank.division
+
+        console.log(this.data);
         this.analysisData = this.analysis_data(response.data, nickName)
+
 
 
         for (const [key, value] of this.analysisData.sortedMomMap.entries()) {
@@ -160,8 +352,6 @@ export default {
 
           const { count, total } = this.analysisData.players_rating.get(spId);
 
-          console.log('avgRating ->', count, total);
-
           let momPlayer = await this.searchPlayers(spId);
           momPlayer.cnt = cnt;
           momPlayer.img = 'data:image/png;base64,' + momPlayer.img;
@@ -171,11 +361,42 @@ export default {
         }
 
 
+        for (const [key, value] of this.analysisData.sortedGoalRankMap.entries()) {
 
-        const max = Math.max(this.analysisData.controllerTypes.keyboard, this.analysisData.controllerTypes.pad, this.analysisData.controllerTypes.etc)
+          const spId = key;
+          const cnt = value.count;
+
+          const { count, total } = this.analysisData.players_rating.get(spId);
+
+          let goalRankPlayer = await this.searchPlayers(spId);
+          goalRankPlayer.cnt = cnt; // 골수
+          goalRankPlayer.img = 'data:image/png;base64,' + goalRankPlayer.img;
+
+          goalRankPlayer.avgRating = total / count;
+          this.goalRankPlayers.push(goalRankPlayer)
+        }
+
+        for (const [key, value] of this.analysisData.sortedAssistRankMap.entries()) {
+
+          const spId = key;
+          const cnt = value.count;
+  
+          const { count, total } = this.analysisData.players_rating.get(spId);
+
+          let assistRankPlayer = await this.searchPlayers(spId);
+          assistRankPlayer.cnt = cnt;
+          assistRankPlayer.img = 'data:image/png;base64,' + assistRankPlayer.img;
+          assistRankPlayer.avgRating = total / count;
+
+          this.assistRankPlayers.push(assistRankPlayer)
+        }
+
+
+
+        const max = Math.max(this.analysisData.controllerTypes.keyboard, this.analysisData.controllerTypes.gamepad, this.analysisData.controllerTypes.etc)
         if (max === this.analysisData.controllerTypes.keyboard) {
           this.controllerType = "키보드"
-        } else if (max === this.analysisData.controllerTypes.pad) {
+        } else if (max === this.analysisData.controllerTypes.gamepad) {
           this.controllerType = "패드"
         } else {
           this.controllerType = "기타"
@@ -187,6 +408,11 @@ export default {
           'win': this.analysisData.winCount,
           'draw': this.analysisData.drawCount,
           'lose': this.analysisData.loseCount
+        }
+
+        this.shootChartData = {
+          'score': this.analysisData.goalTimes,
+          'concede': this.analysisData.opponentGoalTimes
         }
 
       } catch (error) {
@@ -240,7 +466,8 @@ export default {
       let drawCount = 0;
       let loseCount = 0;
       let matchEndTypeCounts = { normal: 0, forfeitWin: 0, forfeitLose: 0 };
-      let controllerTypes = { keyboard: 0, pad: 0, etc: 0 };
+      let controllerTypes = { keyboard: 0, gamepad: 0, etc: 0 };
+      let matchResult = [];
 
       // ShootDTO
       let shootTotal = 0; // Integer	총 슛 수 
@@ -269,16 +496,41 @@ export default {
         10: 0
       }
 
+      let opponentShootTypes = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0
+      }
+
       let hitPost = 0;
+      let opponentHitPost = 0;
       let goalTimes = [];
+      let opponentGoalTimes = [];
       let player_count = 0;
       let totalSpRating = 0;
+
+      let totalScore = 0;
+      let totalConcede = 0;
 
       const players_rating = new Map();
 
       const momMap = new Map();
+
+      const goalRankMap = new Map();
+      const assistRankMap = new Map();
+
       for (const match of data.matchList) {
+
         const targetData = match.matchInfo.filter(item => item.nickname === nickName)[0];
+        const opponentData = match.matchInfo.filter(item => item.nickname != nickName)[0];
+
 
         // MatchDetailDTO
         dribbleSum += targetData.matchDetail.dribble;
@@ -287,10 +539,15 @@ export default {
         possessionSum += targetData.matchDetail.possession;
         offsideCountSum += targetData.matchDetail.offsideCount;
         if (targetData.matchDetail.matchResult === '승') {
+          matchResult.push({ "result": "승", "score": targetData.shoot.goalTotal, "concede": opponentData.shoot.goalTotal });
           winCount++;
         } else if (targetData.matchDetail.matchResult === '무') {
+          matchResult.push({ "result": "무", "score": targetData.shoot.goalTotal, "concede": opponentData.shoot.goalTotal });
+          //matchResult.push("무");
           drawCount++;
         } else if (targetData.matchDetail.matchResult === '패') {
+          matchResult.push({ "result": "패", "score": targetData.shoot.goalTotal, "concede": opponentData.shoot.goalTotal });
+          //matchResult.push("패");
           loseCount++;
         }
         if (targetData.matchDetail.matchEndType === 0) {
@@ -301,6 +558,7 @@ export default {
           matchEndTypeCounts.forfeitLose++;
         }
         controllerTypes[targetData.matchDetail.controller]++;
+
 
         //ShootDTO
         shootTotal += targetData.shoot.shootTotal;
@@ -321,12 +579,32 @@ export default {
         for (const shootDetail of shootDetailList) {
           let goalTime = this.convertGoalTime(shootDetail.goalTime);
           goalTime["result"] = shootDetail.result;
+          if (shootDetail.result == 3) {
+            totalScore += 1;
+          }
           goalTimes.push(goalTime);
           shootTypes[shootDetail.type]++;
           if (shootDetail.hitPost && shootDetail.result != 3) {
             hitPost++;
           }
         }
+
+
+
+        const opponentShootDetailList = opponentData.shootDetail;
+        for (const shootDetail of opponentShootDetailList) {
+          let goalTime = this.convertGoalTime(shootDetail.goalTime);
+          goalTime["result"] = shootDetail.result;
+          if (shootDetail.result == 3) {
+            totalConcede += 1;
+          }
+          opponentGoalTimes.push(goalTime);
+          opponentShootTypes[shootDetail.type]++;
+          if (shootDetail.hitPost && shootDetail.result != 3) {
+            opponentHitPost++;
+          }
+        }
+
 
         let topSpRating = 0;
         let topSpId = null;
@@ -354,6 +632,39 @@ export default {
               topSpRating = player.status.spRating
               topSpId = player.spId
             }
+
+
+            // 득점, 어시스트 카운트
+
+            if (player.status.goal > 0) {
+              if (goalRankMap.has(player.spId)) {
+                const { count, total } = goalRankMap.get(player.spId);
+                goalRankMap.set(player.spId, {
+                  count: count + player.status.goal,
+
+                })
+              } else {
+                goalRankMap.set(player.spId, {
+                  count: player.status.goal,
+
+                })
+              }
+            }
+
+            if (player.status.assist > 0) {
+              if (assistRankMap.has(player.spId)) {
+                const { count, total } = assistRankMap.get(player.spId);
+                assistRankMap.set(player.spId, {
+                  count: count + player.status.assist,
+                })
+              } else {
+                assistRankMap.set(player.spId, {
+                  count: player.status.assist,
+                })
+              }
+            }
+
+
           }
         }
 
@@ -372,14 +683,31 @@ export default {
       }
 
 
-      console.log('momMap -> ', momMap);
+
       // Vue 3 Map을 객체로 변환한 후, count를 기준으로 정렬합니다.
-const sortedArray = [...momMap].sort((a, b) => b[1].count - a[1].count);
+      const sortedArray = [...momMap].sort((a, b) => b[1].count - a[1].count);
 
-// 정렬된 배열을 다시 Vue 3 Map으로 변환합니다.
-const sortedMomMap = new Map(sortedArray);
+      // 정렬된 배열을 다시 Vue 3 Map으로 변환합니다.
+      const sortedMomMap = new Map(sortedArray);
 
-console.log('sortedMap -> ', sortedMomMap)
+
+      // Vue 3 Map을 객체로 변환한 후, count를 기준으로 정렬합니다.
+      const sortedGoalRankArray = [...goalRankMap].sort((a, b) => b[1].count - a[1].count);
+
+      // 정렬된 배열을 다시 Vue 3 Map으로 변환합니다.
+      const sortedGoalRankMap = new Map(sortedGoalRankArray);
+
+
+
+      // Vue 3 Map을 객체로 변환한 후, count를 기준으로 정렬합니다.
+      const sortedassistRankArray = [...assistRankMap].sort((a, b) => b[1].count - a[1].count);
+
+      // 정렬된 배열을 다시 Vue 3 Map으로 변환합니다.
+      const sortedAssistRankMap = new Map(sortedassistRankArray);
+
+
+
+
       /*
       const momResult = momList.reduce((acc, cur) => {
         acc[cur] = acc[cur] ? acc[cur] + 1 : 1;
@@ -420,10 +748,19 @@ console.log('sortedMap -> ', sortedMomMap)
         totalSpRating,
         player_count,
         sortedMomMap,
-        players_rating
+        players_rating,
+        matchResult,
+        opponentGoalTimes,
+        opponentHitPost,
+        opponentShootTypes,
+
+        totalScore,
+        totalConcede,
+        sortedGoalRankMap,
+        sortedAssistRankMap,
       };
 
-      console.log(analysisData)
+
 
       return analysisData
     }
@@ -437,3 +774,12 @@ console.log('sortedMap -> ', sortedMomMap)
   }
 };
 </script>
+
+<style scoped>
+.v-card-text {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  padding: 0;
+}
+</style>

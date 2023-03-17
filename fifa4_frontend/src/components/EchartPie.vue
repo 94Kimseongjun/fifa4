@@ -33,6 +33,10 @@
           title: {
             left: 'center'
           },
+          legend: {
+    orient: 'vertical',
+    left: 'left'
+  },
           tooltip: {
             trigger: 'item',
             formatter: '{b}: {c} ({d}%)'
