@@ -1,7 +1,9 @@
 <template>
   <div>
     <div v-if="data">
+
       <v-card variant="tonal">
+
         <v-row>
           <v-col cols="4">
             <h1>{{ data.nickname }}<br>레벨: {{ data.level }}<br>{{ this.controllerType }} 유저</h1>
@@ -28,12 +30,44 @@
             </div>
           </v-col>
           <v-col cols="3">
-            <div v-if="shootChartData">
-              <EchartShootTime :shootChartData="shootChartData" width="50%" height="auto"></EchartShootTime>
+            <div v-if="shootTimeChartData">
+              <EchartShootTime :shootChartData="shootTimeChartData" width="50%" height="auto"></EchartShootTime>
             </div>
           </v-col>
+          <v-col cols="6">
+
+            <div v-if="shootTypeChartData">
+              <EchartShootType :shootChartData="shootTypeChartData" width="100%" height="auto"></EchartShootType>
+            </div>
+
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="12">
+            <v-card class="d-flex align-center justify-center" style="height: 50px;">
+              <v-card-text>{{ analysisData.winCount }}승{{ analysisData.drawCount }}무/{{ analysisData.loseCount }}패 승률 {{
+                (analysisData.winCount) / (analysisData.count) * 100 }}%</v-card-text>
+              <v-card-text>{{ analysisData.totalScore }}득점 {{ analysisData.totalConcede }}실점</v-card-text>
+              <v-card-text>평균 {{ (analysisData.totalScore / analysisData.count).toFixed(2) }}득점
+                {{ (analysisData.totalConcede / analysisData.count).toFixed(2) }}실점</v-card-text>
+            </v-card>
+
+            <v-card class="d-flex align-center justify-center" style="height: 50px;">
+              <v-card-text>중거리 슛 비율: {{ (analysisData.shootOutPenalty / analysisData.shootTotal * 100).toFixed(2)
+              }}</v-card-text>
+              <v-card-text>평균 평점 {{ (analysisData.totalSpRating / analysisData.player_count).toFixed(2) }}</v-card-text>
+              <v-card-text>평균 점유율: {{ (analysisData.avgPossession / analysisData.count).toFixed(2) }}</v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
 
+
+
+
+
+        <v-row>
           <v-col cols="2">
             평점 랭킹
             <div v-if="momPlayers">
@@ -52,13 +86,13 @@
 
           <v-col cols="2">
             득점 랭킹
-            <div v-if="momPlayers">
+            <div v-if="goalRankPlayers">
               <div v-for="momPlayer in displayedGoalRankPlayers" :key="momPlayer.name">
                 <img :src="momPlayer.img" :alt="momPlayer.name" style="width: 50px; height: auto;">
                 <img :src="momPlayer.seasonImg" :alt="momPlayer.season" style="width: 25px; height: auto;">
                 <v-card class="d-flex align-center justify-center">
                   <v-card-text style="font-size: 10px !important;">{{ momPlayer.name }}<br>득점 수 {{ momPlayer.cnt }}<br>
-                    경기당 평균 득점 수 {{ (momPlayer.cnt/analysisData.count).toFixed(2) }}<br>
+                    경기당 평균 득점 수 {{ (momPlayer.cnt / analysisData.count).toFixed(2) }}<br>
                     평균 평점 {{ (momPlayer.avgRating).toFixed(2) }}</v-card-text>
                 </v-card>
               </div>
@@ -67,60 +101,98 @@
           </v-col>
           <v-col cols="2">
             도움 랭킹
-            <div v-if="momPlayers">
+            <div v-if="assistRankPlayers">
               <div v-for="momPlayer in displayedAssistRankPlayers" :key="momPlayer.name">
                 <img :src="momPlayer.img" :alt="momPlayer.name" style="width: 50px; height: auto;">
                 <img :src="momPlayer.seasonImg" :alt="momPlayer.season" style="width: 25px; height: auto;">
                 <v-card class="d-flex align-center justify-center">
                   <v-card-text style="font-size: 10px !important;">{{ momPlayer.name }}<br>도움 수 {{ momPlayer.cnt }}<br>
-                    경기당 평균 도움 수 {{ (momPlayer.cnt/analysisData.count).toFixed(2) }}<br>
+                    경기당 평균 도움 수 {{ (momPlayer.cnt / analysisData.count).toFixed(2) }}<br>
                     평균 평점 {{ (momPlayer.avgRating).toFixed(2) }}</v-card-text>
                 </v-card>
               </div>
               <button @click="showMoreAssistRank">{{ ButtonTextAssistRank }}</button>
             </div>
           </v-col>
+
+          <v-col cols="2">
+            드리블 랭킹
+            <div v-if="dribbleRankPlayers">
+              <div v-for="momPlayer in displayedDribbleRankPlayers" :key="momPlayer.name">
+                <img :src="momPlayer.img" :alt="momPlayer.name" style="width: 50px; height: auto;">
+                <img :src="momPlayer.seasonImg" :alt="momPlayer.season" style="width: 25px; height: auto;">
+                <v-card class="d-flex align-center justify-center">
+                  <v-card-text style="font-size: 10px !important;">{{ momPlayer.name }}<br>드리블 거리(야드) {{ momPlayer.dribble
+                  }}<br>
+                  <!--
+                  
+                    경기당 평균 드리블 거리(야드) {{ (momPlayer.dribble / analysisData.count).toFixed(2) }}
+                    <br>
+ -->
+                    평균 평점 {{ (momPlayer.avgRating).toFixed(2) }}</v-card-text>
+                </v-card>
+              </div>
+              <button @click="showMoreDribbleRank">{{ ButtonTextDribbleRank }}</button>
+            </div>
+          </v-col>
+
+          <v-col cols="2">
+            패스 랭킹
+            <div v-if="passRankPlayers">
+              <div v-for="momPlayer in displayedPassRankPlayers" :key="momPlayer.name">
+                <img :src="momPlayer.img" :alt="momPlayer.name" style="width: 50px; height: auto;">
+                <img :src="momPlayer.seasonImg" :alt="momPlayer.season" style="width: 25px; height: auto;">
+                <v-card class="d-flex align-center justify-center">
+                  <v-card-text style="font-size: 10px !important;">{{ momPlayer.name }}<br>패스 수 {{ momPlayer.passTry }},
+                    패스 성공 수 {{ momPlayer.passSuccess }}<br>
+                    패스 성공률 {{ ((momPlayer.passSuccess / momPlayer.passTry) * 100).toFixed(2) }}
+                    <br>
+                    <!--
+                    
+                    경기당 평균 패스 수 {{ (momPlayer.passTry / analysisData.count).toFixed(2) }}
+                    경기당 평균 패스 성공 수 {{ (momPlayer.passSuccess / analysisData.count).toFixed(2) }}
+                    <br>
+ -->
+
+                    평균 평점 {{ (momPlayer.avgRating).toFixed(2) }}</v-card-text>
+                </v-card>
+              </div>
+              <button @click="showMorePassRank">{{ ButtonTextPassRank }}</button>
+            </div>
+          </v-col>
+
+          <v-col cols="2">
+            태클 랭킹
+            <div v-if="tackleRankPlayers">
+              <div v-for="momPlayer in displayedTackleRankPlayers" :key="momPlayer.name">
+                <img :src="momPlayer.img" :alt="momPlayer.name" style="width: 50px; height: auto;">
+                <img :src="momPlayer.seasonImg" :alt="momPlayer.season" style="width: 25px; height: auto;">
+                <v-card class="d-flex align-center justify-center">
+                  <v-card-text style="font-size: 10px !important;">{{ momPlayer.name }}<br>태클 수 {{ momPlayer.tackleTry }}
+                    태클 성공 수 {{ momPlayer.tackleSuccess }}<br>
+                    태클 성공률 {{ ((momPlayer.tackleSuccess / momPlayer.tackleTry) * 100).toFixed(2) }}
+                    <br>
+                    <!-- 
+                    
+                    경기당 평균 태클 수 {{ (momPlayer.tackleTry / analysisData.count).toFixed(2) }}
+                    경기당 평균 태클 성공 수 {{ (momPlayer.tackleSuccess / analysisData.count).toFixed(2) }}
+                    <br>
+-->
+
+                    평균 평점 {{ (momPlayer.avgRating).toFixed(2) }}</v-card-text>
+                </v-card>
+              </div>
+              <button @click="showMoreTackleRank">{{ ButtonTextTackleRank }}</button>
+            </div>
+          </v-col>
+
+
+
         </v-row>
 
 
 
-        <v-col cols="2">
-          <v-card class="d-flex align-center justify-center" style="height: 50px;">
-            <v-card-text>{{ analysisData.winCount }}승{{ analysisData.drawCount }}무/{{ analysisData.loseCount }}패 승률 {{
-              (analysisData.winCount) / (analysisData.count) * 100 }}%</v-card-text>
-          </v-card>
-
-          <v-card class="d-flex align-center justify-center" style="height: 50px;">
-            <v-card-text>{{ analysisData.totalScore }}득점 {{ analysisData.totalConcede }}실점</v-card-text>
-          </v-card>
-
-          <v-card class="d-flex align-center justify-center" style="height: 50px;">
-            <v-card-text>평균 {{ (analysisData.totalScore / analysisData.count).toFixed(2) }}득점
-              {{ (analysisData.totalConcede / analysisData.count).toFixed(2) }}실점</v-card-text>
-          </v-card>
-
-          <v-card class="d-flex align-center justify-center" style="height: 50px;">
-            <v-card-text>중거리 슛 비율: {{ (analysisData.shootOutPenalty /
-              analysisData.shootTotal * 100).toFixed(2) }}</v-card-text>
-          </v-card>
-
-          <v-card class="d-flex align-center justify-center" style="height: 50px;">
-            <v-card-text>평균 평점 {{ (analysisData.totalSpRating /
-              analysisData.player_count).toFixed(2) }}</v-card-text>
-          </v-card>
-
-          <v-card class="d-flex align-center justify-center" style="height: 60px;">
-            <v-card-text>평균 점유율: {{ (analysisData.avgPossession /
-              analysisData.count).toFixed(2) }}</v-card-text>
-          </v-card>
-
-        </v-col>
-
-
-
-
-
-        <v-col cols="8">
+        <v-col cols="6">
           <v-row no-gutters>
             <v-col v-for="(item, index) in analysisData.matchResult" :key="index">
               <v-card class="d-flex align-center justify-center"
@@ -130,23 +202,12 @@
             </v-col>
           </v-row>
         </v-col>
-
-
       </v-container>
 
-
-      <v-col cols="4">
-
-
-
-
-
-      </v-col>
     </div>
 
-    <div v-if="analysisData">
 
-      <!-- 
+    <!-- 
       <p>평균 드리블 거리: {{ analysisData.avgDribbleDistance / analysisData.count }}</p>
       <p>평균 파울 수: {{ analysisData.avgFoulCount / analysisData.count }}</p>
       <p>평균 코너킥 수: {{ analysisData.avgCornerKickCount / analysisData.count }}</p>
@@ -158,28 +219,10 @@
 
 
 
-      <!-- 
-      <v-card variant="outlined">
-        <v-row>
-          <v-col cols="4">
-            <div class="text-center">{{ analysisData.count }} 경기 평균 점유율: {{ (analysisData.avgPossession /
-              analysisData.count).toFixed(2) }}</div>
-          </v-col>
-          <v-col cols="4">
-            <div class="text-center">{{ analysisData.count }} 경기 중거리 슛 시도 비율: {{ (analysisData.shootOutPenalty /
-              analysisData.shootTotal * 100).toFixed(2) }}</div>
-          </v-col>
-          <v-col cols="4">
-            <div class="text-center">{{ analysisData.count }} 경기 평균 평점 {{ (analysisData.totalSpRating /
-              analysisData.player_count).toFixed(2) }}</div>
-          </v-col>
-          <v-spacer></v-spacer>
-        </v-row>
-      </v-card>
--->
 
 
-      <!-- 
+
+    <!-- 
       <p>매치 결과: {{ analysisData.winCount }}승 {{ analysisData.drawCount }}무 {{ analysisData.loseCount }}패</p>
 
 
@@ -209,12 +252,12 @@
 
 -->
 
-      <!-- 
+    <!-- 
       <p>shootTypes : {{ analysisData.shootTypes }}</p>
       
     -->
 
-    </div>
+
 
   </div>
 </template>
@@ -224,29 +267,48 @@ import axios from 'axios';
 //import { useRouter } from 'vue-router';
 import EchartPie from './EchartPie.vue';
 import EchartShootTime from './EchartShootTime.vue';
+import EchartShootType from './EchartShootType.vue';
 export default {
   name: 'Home',
   components: {
     EchartPie,
-    EchartShootTime
+    EchartShootTime,
+    EchartShootType
   },
   data() {
     return {
       data: null,
       analysisData: null,
-      momPlayers: [],
       division_icon: null,
       controllerType: null,
       chartData: null,
+
+      momPlayers: [],
       momDisplayCount: 3,
       ButtonText: '더보기',
-      shootChartData: null,
-      goalRankPlayers:[],
-      assistRankPlayers:[],
+
+      shootTimeChartData: null,
+      shootTypeChartData: null,
+
+      goalRankPlayers: [],
       goalRankDisplayCount: 3,
       ButtonTextGoalRank: '더보기',
+
+      assistRankPlayers: [],
       assistRankDisplayCount: 3,
       ButtonTextAssistRank: '더보기',
+
+      passRankPlayers: [],
+      passRankDisplayCount: 3,
+      ButtonTextPassRank: '더보기',
+
+      dribbleRankPlayers: [],
+      dribbleRankDisplayCount: 3,
+      ButtonTextDribbleRank: '더보기',
+
+      tackleRankPlayers: [],
+      tackleRankDisplayCount: 3,
+      ButtonTextTackleRank: '더보기',
 
     }
   },
@@ -260,6 +322,15 @@ export default {
     },
     displayedAssistRankPlayers() {
       return this.assistRankPlayers.slice(0, this.assistRankDisplayCount);
+    },
+    displayedPassRankPlayers() {
+      return this.passRankPlayers.slice(0, this.passRankDisplayCount);
+    },
+    displayedTackleRankPlayers() {
+      return this.tackleRankPlayers.slice(0, this.tackleRankDisplayCount);
+    },
+    displayedDribbleRankPlayers() {
+      return this.dribbleRankPlayers.slice(0, this.dribbleRankDisplayCount);
     },
 
 
@@ -302,6 +373,45 @@ export default {
         this.ButtonTextAssistRank = '더보기';
       }
     },
+    showMorePassRank() {
+      if (this.ButtonTextPassRank == '더보기') {
+        this.passRankDisplayCount += 3;
+        if (this.passRankDisplayCount >= this.passRankPlayers.length) {
+          this.passRankDisplayCount = this.passRankPlayers.length;
+          this.ButtonTextPassRank = '접기';
+        }
+      } else if (this.ButtonTextPassRank == '접기') {
+        this.passRankDisplayCount = 3;
+        this.ButtonTextPassRank = '더보기';
+      }
+    },
+    showMoreDribbleRank() {
+      if (this.ButtonTextDribbleRank == '더보기') {
+        this.dribbleRankDisplayCount += 3;
+        if (this.dribbleRankDisplayCount >= this.dribbleRankPlayers.length) {
+          this.dribbleRankDisplayCount = this.dribbleRankPlayers.length;
+          this.ButtonTextDribbleRank = '접기';
+        }
+      } else if (this.ButtonTextDribbleRank == '접기') {
+        this.dribbleRankDisplayCount = 3;
+        this.ButtonTextAssistRank = '더보기';
+      }
+    },
+    showMoreTackleRank() {
+      if (this.ButtonTextTackleRank == '더보기') {
+        this.tackleRankDisplayCount += 3;
+        if (this.tackleRankDisplayCount >= this.tackleRankPlayers.length) {
+          this.tackleRankDisplayCount = this.tackleRankPlayers.length;
+          this.ButtonTextTackleRank = '접기';
+        }
+      } else if (this.ButtonTextTackleRank == '접기') {
+        this.tackleRankDisplayCount = 3;
+        this.ButtonTextTackleRank = '더보기';
+      }
+    },
+
+
+
 
     async searchPlayers(spid) {
       try {
@@ -324,6 +434,7 @@ export default {
       this.division_icon = null;
       this.controllerType = null;
       this.chartData = {};
+      this.goal
 
 
 
@@ -334,7 +445,7 @@ export default {
       }
 
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/searchNickName?nickName=${this.$route.query.nickName}`);
+        const response = await axios.get(`http://127.0.0.1:8000/searchNickName?nickName=${this.$route.query.nickName}&searchType=${this.$route.query.searchType}&searchMatchCount=${this.$route.query.searchMatchCount}`);
         this.data = response.data
 
         console.log(this.data);
@@ -342,7 +453,11 @@ export default {
 
 
 
+        let rankCnt =0;
         for (const [key, value] of this.analysisData.sortedMomMap.entries()) {
+          if (rankCnt >=5){
+            break;
+          }
 
           //const spId = item[0];
           //const cnt = item[1];
@@ -358,11 +473,15 @@ export default {
           momPlayer.avgTopRating = avgTopRating;
           momPlayer.avgRating = total / count;
           this.momPlayers.push(momPlayer)
+          rankCnt++;
         }
 
 
+        rankCnt = 0;
         for (const [key, value] of this.analysisData.sortedGoalRankMap.entries()) {
-
+          if (rankCnt >=5){
+            break;
+          }
           const spId = key;
           const cnt = value.count;
 
@@ -374,13 +493,18 @@ export default {
 
           goalRankPlayer.avgRating = total / count;
           this.goalRankPlayers.push(goalRankPlayer)
+          rankCnt++;
         }
+        rankCnt = 0;
 
         for (const [key, value] of this.analysisData.sortedAssistRankMap.entries()) {
 
+          if (rankCnt >=5){
+            break;
+          }
           const spId = key;
           const cnt = value.count;
-  
+
           const { count, total } = this.analysisData.players_rating.get(spId);
 
           let assistRankPlayer = await this.searchPlayers(spId);
@@ -389,7 +513,71 @@ export default {
           assistRankPlayer.avgRating = total / count;
 
           this.assistRankPlayers.push(assistRankPlayer)
+          rankCnt++;
         }
+
+        rankCnt = 0;
+        for (const [key, value] of this.analysisData.sortedDribbleRankMap.entries()) {
+
+          if (rankCnt >=5){
+            break;
+          }
+          const spId = key;
+          const dribble = value.dribble;
+
+          const { count, total } = this.analysisData.players_rating.get(spId);
+
+          let dribbleRankPlayer = await this.searchPlayers(spId);
+          dribbleRankPlayer.dribble = dribble;
+          dribbleRankPlayer.img = 'data:image/png;base64,' + dribbleRankPlayer.img;
+          dribbleRankPlayer.avgRating = total / count;
+
+          this.dribbleRankPlayers.push(dribbleRankPlayer)
+          rankCnt++;
+        }
+
+        rankCnt = 0;
+        for (const [key, value] of this.analysisData.sortedPassRankMap.entries()) {
+
+          if (rankCnt >=5){
+            break;
+          }
+          const spId = key;
+          const passTry = value.passTry;
+          const passSuccess = value.passSuccess;
+
+          const { count, total } = this.analysisData.players_rating.get(spId);
+
+          let passRankPlayer = await this.searchPlayers(spId);
+          passRankPlayer.passTry = passTry;
+          passRankPlayer.passSuccess = passSuccess;
+          passRankPlayer.img = 'data:image/png;base64,' + passRankPlayer.img;
+          passRankPlayer.avgRating = total / count;
+
+          this.passRankPlayers.push(passRankPlayer)
+          rankCnt++;
+        }
+
+        rankCnt = 0;
+        for (const [key, value] of this.analysisData.sortedTackleRankMap.entries()) {
+          if (rankCnt >=5){
+            break;
+          }
+          const spId = key;
+          const tackleTry = value.tackleTry;
+          const tackleSuccess = value.tackleSuccess;
+
+          const { count, total } = this.analysisData.players_rating.get(spId);
+
+          let tackleRankPlayer = await this.searchPlayers(spId);
+          tackleRankPlayer.tackleTry = tackleTry;
+          tackleRankPlayer.tackleSuccess = tackleSuccess;
+          tackleRankPlayer.img = 'data:image/png;base64,' + tackleRankPlayer.img;
+          tackleRankPlayer.avgRating = total / count;
+
+          this.tackleRankPlayers.push(tackleRankPlayer)
+          rankCnt++;
+}
 
 
 
@@ -410,9 +598,13 @@ export default {
           'lose': this.analysisData.loseCount
         }
 
-        this.shootChartData = {
+        this.shootTimeChartData = {
           'score': this.analysisData.goalTimes,
           'concede': this.analysisData.opponentGoalTimes
+        }
+
+        this.shootTypeChartData = {
+          'score': this.analysisData.goalTimes,
         }
 
       } catch (error) {
@@ -526,6 +718,24 @@ export default {
       const goalRankMap = new Map();
       const assistRankMap = new Map();
 
+      /*
+            passRankPlayers:[],
+      passRankDisplayCount: 3,
+      ButtonTextPassRank: '더보기',
+      
+      dribbleRankPlayers:[],
+      dribbleRankDisplayCount: 3,
+      ButtonTextDribbleRank: '더보기',
+
+      tackleRankPlayers:[],
+      tackleRankDisplayCount: 3,
+      ButtonTextTackleRank: '더보기',
+      */
+
+      const passRankMap = new Map();
+      const dribbleRankMap = new Map();
+      const tackleRankMap = new Map();
+
       for (const match of data.matchList) {
 
         const targetData = match.matchInfo.filter(item => item.nickname === nickName)[0];
@@ -582,6 +792,7 @@ export default {
           if (shootDetail.result == 3) {
             totalScore += 1;
           }
+          goalTime["shootType"] = shootDetail.type;
           goalTimes.push(goalTime);
           shootTypes[shootDetail.type]++;
           if (shootDetail.hitPost && shootDetail.result != 3) {
@@ -638,7 +849,7 @@ export default {
 
             if (player.status.goal > 0) {
               if (goalRankMap.has(player.spId)) {
-                const { count, total } = goalRankMap.get(player.spId);
+                const { count } = goalRankMap.get(player.spId);
                 goalRankMap.set(player.spId, {
                   count: count + player.status.goal,
 
@@ -653,7 +864,7 @@ export default {
 
             if (player.status.assist > 0) {
               if (assistRankMap.has(player.spId)) {
-                const { count, total } = assistRankMap.get(player.spId);
+                const { count } = assistRankMap.get(player.spId);
                 assistRankMap.set(player.spId, {
                   count: count + player.status.assist,
                 })
@@ -664,11 +875,56 @@ export default {
               }
             }
 
+            if (player.status.passTry > 0) {
+              if (passRankMap.has(player.spId)) {
+                const { passTry, passSuccess } = passRankMap.get(player.spId);
+                passRankMap.set(player.spId, {
+                  passTry: passTry + player.status.passTry,
+                  passSuccess: passSuccess + player.status.passSuccess
+                })
+              } else {
+                passRankMap.set(player.spId, {
+                  passTry: player.status.passTry,
+                  passSuccess: player.status.passSuccess,
+                })
+              }
+            }
+
+
+            if (player.status.dribble > 0) {
+              if (dribbleRankMap.has(player.spId)) {
+                const { dribble } = dribbleRankMap.get(player.spId);
+                dribbleRankMap.set(player.spId, {
+                  dribble: dribble + player.status.dribble,
+
+                })
+              } else {
+                dribbleRankMap.set(player.spId, {
+                  dribble: player.status.dribble,
+                })
+              }
+            }
+
+            if (player.status.tackleTry > 0) {
+              if (tackleRankMap.has(player.spId)) {
+                const { tackleTry, tackleSuccess } = tackleRankMap.get(player.spId);
+                tackleRankMap.set(player.spId, {
+                  tackleTry: tackleTry + player.status.tackleTry,
+                  tackleSuccess: tackleSuccess + player.status.tackle
+                })
+              } else {
+                tackleRankMap.set(player.spId, {
+                  tackleTry: player.status.tackleTry,
+                  tackleSuccess: player.status.tackle
+                })
+              }
+            }
 
           }
         }
 
-        if (momMap.has(topSpId)) {
+        if (topSpId){
+          if (momMap.has(topSpId)) {
           const { count, total } = momMap.get(topSpId);
           momMap.set(topSpId, {
             count: count + 1,
@@ -680,6 +936,9 @@ export default {
             total: topSpRating,
           })
         }
+        }
+
+        
       }
 
 
@@ -706,7 +965,15 @@ export default {
       const sortedAssistRankMap = new Map(sortedassistRankArray);
 
 
+      const sortedDribbleRankArray = [...dribbleRankMap].sort((a, b) => b[1].dribble - a[1].dribble);
+      const sortedDribbleRankMap = new Map(sortedDribbleRankArray);
 
+
+      const sortedPassRankArray = [...passRankMap].sort((a, b) => b[1].passTry - a[1].passTry);
+      const sortedPassRankMap = new Map(sortedPassRankArray);
+
+      const sortedTackleRankArray = [...tackleRankMap].sort((a, b) => b[1].tackleTry - a[1].tackleTry);
+      const sortedTackleRankMap = new Map(sortedTackleRankArray);
 
       /*
       const momResult = momList.reduce((acc, cur) => {
@@ -758,6 +1025,9 @@ export default {
         totalConcede,
         sortedGoalRankMap,
         sortedAssistRankMap,
+        sortedDribbleRankMap,
+        sortedPassRankMap,
+        sortedTackleRankMap,
       };
 
 
@@ -767,10 +1037,10 @@ export default {
   },
   watch: {
     // watch for changes in the route query object to call handleSearch method
-    '$route.query.nickName': {
+    '$route.query': {
       immediate: true, // call the method immediately when the component is created
       handler: 'handleSearch',
-    }
+    },
   }
 };
 </script>
@@ -781,5 +1051,4 @@ export default {
   font-weight: bold;
   text-align: center;
   padding: 0;
-}
-</style>
+}</style>
