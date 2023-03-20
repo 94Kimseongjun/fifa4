@@ -25,7 +25,6 @@ export default {
 
             const [data_a, data_b]= this.convert_data(this.shootChartData);
 
-
             // 차트 생성
             this.chart = echarts.init(this.$refs.chart);
 
@@ -113,13 +112,15 @@ export default {
             let data_a = [0,0,0,0,0,0,0,0]
             let data_b = [0,0,0,0,0,0,0,0]
             for (const data of chartData.score){
+                
                 let [minutes, seconds] = data.time.split('분');
                 const result = data.result;
                 minutes = parseInt(minutes);
+   
                 if (result != 3){
                     continue;
                 }
-
+   
                 if (data.type==='전반'){
                     if (minutes<15){
                         data_a[0] += 1
@@ -173,6 +174,7 @@ export default {
                     data_b[7] -= 1;
                 }
             }
+         
            return [data_a, data_b];
         },
     },

@@ -8,11 +8,16 @@
         {{ tab.title }}
       </v-tab>
     </v-tabs>
-    <v-row xs12 md4>
+    <v-row xs12 md4> 
+      <v-select v-model="searchType" :items="searchTypes" label="Search Type"></v-select>
+      <v-select v-model="searchMatchCount" :items="searchMatchCounts" label="Search Match Count"></v-select>
       <v-col>
         <v-text-field v-model="searchText" label="Search" outlined dense solo-inverted hide-details clearable
           class="search-field" placeholder="Search" append-icon="mdi-magnify" @click:append="handleSearch"></v-text-field>
       </v-col>
+  
+  
+
     </v-row>
   </v-app-bar>
 </template>
@@ -34,6 +39,12 @@ const tabs = [
     to: '/tab3',
   },
 ];
+
+const searchMatchCounts = [10,20,30,40,50,60,70,80,90,100];
+const searchTypes = ['공식경기', '감독모드', '리그친선', '클래식 1on1', '공식 친선'];
+
+const searchMatchCount = ref(searchMatchCounts[0])
+const searchType = ref(searchTypes[0]);
 const router = useRouter();
 const searchText = ref('');
 const selectedTab = ref(null);
@@ -53,7 +64,7 @@ const handleSearch = async () => {
   try {
     router.push({ 
       name: 'Home', 
-      query: { nickName: searchText.value },
+      query: { nickName: searchText.value, searchType:searchType.value, searchMatchCount:searchMatchCount.value },
     });
   } catch (error) {
     console.log(error);
