@@ -1,25 +1,22 @@
-# base
 ## Project setup
 ```
 # window
 
 1. npm Downlaod
-
-https://nodejs.org/en/download
+-https://nodejs.org/en/download
 
 2. npm install
-
-$npm install
+-$npm install
 
 3. Git Clone
 
 4. move to project location
 
 5. server run
+- $npm run dev
 
-$npm run dev
 
-```
+
 # yarn
 yarn
 
